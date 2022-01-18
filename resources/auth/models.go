@@ -5,6 +5,11 @@ type AuthReq struct {
 	Password string `json:"password"`
 }
 
+type ChangePasswordReq struct {
+	Password    string `json:"password"`
+	NewPassword string `json:"new_password"`
+}
+
 type AuthRes struct {
 	Email      string            `json:"email"`
 	Namespaces string            `json:"namespaces"`

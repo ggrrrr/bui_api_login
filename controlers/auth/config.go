@@ -1,7 +1,8 @@
-package passwd
+package auth
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -25,13 +26,14 @@ var (
 		"facebook": fetchEmailFacebook,
 	}
 
-	envParamsDefaults = []config.ParamValue{
-		{
-			Name:     REDIRECT_URL,
-			Info:     "oauth2 redirect urtl to FE",
-			DefValue: "http://localhost:8080",
-		},
-	}
+	// envParamsDefaults = []config.ParamValue{
+	// 	{
+	// 		Name:     REDIRECT_URL,
+	// 		Info:     "oauth2 redirect urtl to FE",
+	// 		DefValue: "http://localhost:8080",
+	// 	},
+	// }
+
 	envParamsProvider = []config.ParamValue{
 		{
 			Name:     CLIENT_ID,
@@ -65,8 +67,7 @@ var (
 		},
 	}
 
-	redirectURL = "http://localhost:8080/callback"
-	providers   = map[string]ProviderConfig{}
+	providers = map[string]ProviderConfig{}
 )
 
 func getViper(name, group string) string {
@@ -74,14 +75,17 @@ func getViper(name, group string) string {
 }
 
 func Configure() {
-	config.Configure(envParamsDefaults)
+	// config.Configure(envParamsDefaults)
 
 	for k := range fetchProfileFunc {
+		log.Printf("config: oauth2: %v", k)
 		config.ConfigureGroup(envParamsProvider, k)
 	}
 	for p := range fetchProfileFunc {
 		clientID := getViper(CLIENT_ID, p)
+		log.Printf("config: oauth2: %+v: clientID: %s", p, clientID)
 		if clientID == "" {
+			log.Printf("ERROR config: oauth2: %+v: : %s", p, clientID)
 			continue
 		}
 		providers[p] = ProviderConfig{
@@ -94,4 +98,5 @@ func Configure() {
 			FetchProfileURL: getViper(PROFILE_URL, p),
 		}
 	}
+
 }

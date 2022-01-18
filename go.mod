@@ -4,13 +4,13 @@ go 1.17
 
 require (
 	github.com/ggrrrr/bui_lib v0.0.0-20220107135623-55e2651409e8
+	github.com/golang-jwt/jwt/v4 v4.2.0
 	github.com/spf13/viper v1.10.1
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 )
 
 require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
-	github.com/golang-jwt/jwt/v4 v4.2.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.3 // indirect
 	github.com/hailocab/go-hostpool v0.0.0-20160125115350-e80d13ce29ed // indirect
@@ -37,7 +37,6 @@ require (
 
 require (
 	github.com/gocql/gocql v0.0.0-20211222173705-d73e6b1002a7
-	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/mssola/user_agent v0.5.3 // indirect
 	github.com/scylladb/gocqlx v1.5.0
@@ -45,4 +44,4 @@ require (
 	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
 )
 
-// replace github.com/ggrrrr/bui_lib => ../bui_lib
+replace github.com/ggrrrr/bui_lib => ../bui_lib

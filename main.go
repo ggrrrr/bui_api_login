@@ -11,11 +11,11 @@ import (
 
 	"github.com/ggrrrr/bui_api_login/cli"
 	"github.com/ggrrrr/bui_api_login/cli/users"
-	"github.com/ggrrrr/bui_api_login/controlers/passwd"
-	"github.com/ggrrrr/bui_api_login/resources/auth"
+	"github.com/ggrrrr/bui_api_login/controlers/auth"
+	res "github.com/ggrrrr/bui_api_login/resources/auth"
 
 	"github.com/ggrrrr/bui_lib/api"
-	"github.com/ggrrrr/bui_lib/db"
+	db "github.com/ggrrrr/bui_lib/db/cassandra"
 	"github.com/ggrrrr/bui_lib/token"
 	"github.com/ggrrrr/bui_lib/token/sign"
 )
@@ -36,7 +36,7 @@ func init() {
 func main() {
 	flag.Parse()
 
-	passwd.Configure()
+	auth.Configure()
 
 	err = db.Configure()
 	if err != nil {
@@ -49,6 +49,7 @@ func main() {
 	defer session.Close()
 	db.CreateSchema("passwd")
 	defer db.Session.Close()
+
 	if command != "" {
 		v, ok := commands[command]
 		if !ok {
@@ -66,7 +67,7 @@ func main() {
 func server() {
 
 	if token.Configure() != nil {
-		log.Fatalf(err.Error())
+		log.Fatalln("token config")
 	}
 
 	if sign.Configure() != nil {
@@ -88,9 +89,10 @@ func server() {
 		log.Fatalf(err.Error())
 	}
 
-	api.HandleFunc("/auth/login/user", auth.LoginUserRequest)
-	api.HandleFunc("/auth/login/oauth2", auth.LoginOauth2Request)
-	api.HandleFunc("/auth/token", auth.TokenVerifyRequest)
+	api.HandleFunc("/auth/login/user", res.LoginUserRequest)
+	api.HandleFunc("/auth/login/oauth2", res.LoginOauth2Request)
+	api.HandleFunc("/auth/token", res.TokenVerifyRequest)
+	api.HandleFunc("/auth/me/password", res.ChangePasswordRequest)
 
 	osSignals := make(chan os.Signal, 1)
 	go func() {
@@ -107,4 +109,5 @@ func server() {
 	api.Shutdown()
 	db.Session.Close()
 	log.Printf("end.")
+
 }

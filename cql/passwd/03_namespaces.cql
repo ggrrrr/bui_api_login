@@ -4,5 +4,6 @@ CREATE TABLE IF NOT EXISTS namespaces (
 	domain TEXT,
 	created_time timestamp,
 	PRIMARY KEY ((namespace), domain)
-);
+)
 
+ 

@@ -3,10 +3,13 @@
 ## Project setup
 ```
 go mod tidy -compat=1.17
+go clean -testcache
+go clean -cache -modcache -i -r
 ```
 
 `.env.local`
 ```bash
+LISTEN_ADDR=:8100
 
 OAUTH2_REDIRECT_URL=http://localhost:8080
 
@@ -34,8 +37,10 @@ go run main.go
 
 ## TESTS
 ```
-export T=`curl -s -X POST -d '{"email":"asd@asd.com","password":"asd"}' localhost:8000/userLogin | jq -r '.token'`
+export T=`curl -s -X POST -d '{"email":"ggrrrr@gmail.com","password":"asdasd"}' localhost:8000/auth/login/user | jq -r '.token'`
 
-curl -v  -H "Authorization: Bearer $T" http://localhost:8000/tokenVerify
+export T=`curl -s -X POST -d '{"email":"asd@asd.com","password":"asd"}' localhost:8000/auth/login/user | jq -r '.token'`
+
+curl -v  -H "Authorization: Bearer $T" http://localhost:8000/auth/token
 
 ```

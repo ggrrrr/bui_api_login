@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/ggrrrr/bui_api_login/controlers/passwd"
+	"github.com/ggrrrr/bui_api_login/controlers/auth"
 	"github.com/ggrrrr/bui_lib/api"
 )
 
@@ -30,10 +30,10 @@ func LoginOauth2Request(w http.ResponseWriter, r *http.Request) {
 		api.ResponseError(w, 400, "Unable to read body", err)
 		return
 	}
-	auth := passwd.AuthVerify{}
-	json.Unmarshal(body, &auth)
-	log.Printf("LoginOauth2Request provider: %v, state: %v url: %s, code: %v", auth.Provider, auth.State, auth.RedirectURL, auth.Code)
-	ok, userPasswd, err := passwd.VerifyOauthCode(r.Context(), &auth)
+	authReq := auth.AuthVerify{}
+	json.Unmarshal(body, &authReq)
+	log.Printf("LoginOauth2Request provider: %v, state: %v url: %s, code: %v", authReq.Provider, authReq.State, authReq.RedirectURL, authReq.Code)
+	userPasswd, ok := auth.VerifyOauthCode(r.Context(), &authReq)
 
-	parseLoginData(w, r.Context(), ok, userPasswd, err)
+	parseLoginReulst(w, r.Context(), ok, userPasswd)
 }

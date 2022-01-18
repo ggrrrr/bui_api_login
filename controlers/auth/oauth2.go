@@ -1,4 +1,4 @@
-package passwd
+package auth
 
 import (
 	"context"
@@ -8,8 +8,9 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/ggrrrr/bui_api_login/controlers"
 	"github.com/ggrrrr/bui_api_login/models"
-	"github.com/ggrrrr/bui_lib/db"
+	db "github.com/ggrrrr/bui_lib/db/cassandra"
 	"golang.org/x/oauth2"
 )
 
@@ -89,15 +90,16 @@ func codeExchange(ctx context.Context, conf oauth2.Config, code string) (*http.C
 
 }
 
-func VerifyOauthCode(ctx context.Context, auth *AuthVerify) (AUTH_RESULT, *models.UserPasswd, error) {
+func VerifyOauthCode(ctx context.Context, auth *AuthVerify) (*models.UserPasswd, *controlers.AuthError) {
 	_, ok := fetchProfileFunc[auth.Provider]
 	if !ok {
-		return AUTH_ERR, nil, fmt.Errorf("auth provider(%v) not defined", auth.Provider)
+		log.Printf("auth config %+v", providers)
+		return nil, controlers.ErrorStringf("auth func provider(%v) not defined", auth.Provider)
 	}
-	// make sure we have config and func for provider X
 	p, ok := providers[auth.Provider]
 	if !ok {
-		return AUTH_ERR, nil, fmt.Errorf("auth provider(%v) not defined", auth.Provider)
+		log.Printf("auth config %+v", providers)
+		return nil, controlers.ErrorStringf("auth provider(%v) not defined", auth.Provider)
 	}
 	conf := oauth2.Config{
 		ClientID:     p.ClientID,
@@ -115,33 +117,33 @@ func VerifyOauthCode(ctx context.Context, auth *AuthVerify) (AUTH_RESULT, *model
 	}
 	authClient, err := codeExchange(ctx, conf, auth.Code)
 	if err != nil {
-		return AUTH_ERR, nil, fmt.Errorf("unable to fetch token %v", err)
+		return nil, controlers.ErrorStringf("unable to fetch token %v", err)
 	}
 	profile, err := fetchProfileFunc[auth.Provider](authClient, p.FetchProfileURL)
 	if err != nil {
-		return AUTH_ERR, nil, fmt.Errorf("unable to fetch profile %v", err)
+		return nil, controlers.ErrorStringf("unable to fetch profile %v", err)
 	}
 	log.Printf("VerifyOauthCode: provider: %v, state: %v, email: %v", auth.Provider, auth.State, profile.Email)
-	passwd, err := models.Get(db.Session, profile.Email)
+	userPasswd, err := models.Get(db.Session, profile.Email)
 	if err != nil {
-		return AUTH_ERR, nil, err
+		return nil, controlers.Error(err)
 	}
-	if passwd == nil {
-		return AUTH_NOT_FOUND, nil, nil
+	if userPasswd == nil {
+		return nil, controlers.New(controlers.AUTH_NOT_FOUND, nil)
 	}
-	if !passwd.Enabled {
-		return AUTH_LOCKED, nil, nil
+	if !userPasswd.Enabled {
+		return nil, controlers.New(controlers.AUTH_LOCKED, nil)
 	}
 	if profile.Picture != "" {
-		log.Printf("asdasd %+v", passwd)
-		if passwd.Attr["picture"] == "" {
-			passwd.Attr["picture"] = profile.Picture
-			log.Printf("update passwdAttr for: :%v %+v", passwd.Email, passwd.UpdateAttr(db.Session))
+		log.Printf("asdasd %+v", userPasswd)
+		if userPasswd.Attr["picture"] == "" {
+			userPasswd.Attr["picture"] = profile.Picture
+			log.Printf("update passwdAttr for: :%v %+v", userPasswd.Email, userPasswd.UpdateAttr(db.Session))
 		}
 
-		passwd.Attr["picture"] = profile.Picture
+		userPasswd.Attr["picture"] = profile.Picture
 	}
-	log.Printf("asdasd %+v", passwd)
-	return AUTH_OK, passwd, nil
+	log.Printf("asdasd %+v", userPasswd)
+	return userPasswd, controlers.NewOK()
 	// return AUTH_ERR, nil, fmt.Errorf("shit")
 }

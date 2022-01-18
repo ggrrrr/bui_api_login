@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/ggrrrr/bui_api_login/models"
-	"github.com/ggrrrr/bui_lib/db"
+	db "github.com/ggrrrr/bui_lib/db/cassandra"
 )
 
 func TestPasswd1(t *testing.T) {

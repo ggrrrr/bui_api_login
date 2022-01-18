@@ -8,12 +8,13 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/ggrrrr/bui_api_login/controlers"
 	"github.com/ggrrrr/bui_api_login/controlers/passwd"
 	"github.com/ggrrrr/bui_api_login/models"
 	"github.com/ggrrrr/bui_lib/api"
 	"github.com/ggrrrr/bui_lib/token"
 	"github.com/ggrrrr/bui_lib/token/sign"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 func LoginUserRequest(w http.ResponseWriter, r *http.Request) {
@@ -26,58 +27,61 @@ func LoginUserRequest(w http.ResponseWriter, r *http.Request) {
 		api.ResponseError(w, 400, "Asd", err)
 		return
 	}
-	log.Printf("%s %+v", r.Method, auth.Email)
+	if auth.Email == "" {
+		api.ResponseError(w, 400, "bad request", fmt.Errorf(""))
+		return
+	}
+	if auth.Password == "" {
+		api.ResponseError(w, 400, "bad request", fmt.Errorf(""))
+		return
+	}
 
-	ok, userPasswd, err := passwd.VerifyUserPasswd(r.Context(), auth.Email, auth.Password)
+	ua := api.GetUserAgent(r.Context())
+	userPasswd, ok := passwd.VerifyUserPasswd(r.Context(), auth.Email, auth.Password)
+	log.Printf("passwd.VerifyUserPasswd: namespace: %+v %+v %+v", ua, userPasswd, ok)
 	// time.Sleep(2 * time.Second)
-	parseLoginData(w, r.Context(), ok, userPasswd, err)
+	parseLoginReulst(w, r.Context(), ok, userPasswd)
 
 }
 
-func parseLoginData(w http.ResponseWriter, ctx context.Context, ok passwd.AUTH_RESULT, userPasswd *models.UserPasswd, err error) {
+func parseLoginReulst(w http.ResponseWriter, ctx context.Context, ok *controlers.AuthError, userPasswd *models.UserPasswd) {
 	email := ""
 	enabled := false
 	if userPasswd != nil {
 		email = userPasswd.Email
 		enabled = userPasswd.Enabled
 	}
-	log.Printf("parseLoginData: %v, user: %v enabled: %v , err: %v", passwd.AUTH_INFO(ok), email, enabled, err)
-	if err != nil {
-		log.Printf("error %v\n", err)
-		api.ResponseError(w, 500, "Asd", err)
+	log.Printf("parseLoginReulst: user: %v enabled: %v , err: %v", email, enabled, ok)
+	if ok.Err != nil {
+		log.Printf("error %v\n", ok.Err)
+		api.ResponseError(w, 500, "InternalError", ok.Err)
 		return
 	}
-	if ok == passwd.AUTH_LOCKED {
+	if ok.Result == controlers.AUTH_LOCKED {
 		api.ResponseErrorUnauthorized(w, fmt.Errorf("account is locked"))
 		return
 	}
-	if ok == passwd.AUTH_NOT_FOUND {
+	if ok.Result == controlers.AUTH_NOT_FOUND {
 		api.ResponseErrorUnauthorized(w, fmt.Errorf("wrong email"))
 		return
 	}
-	if ok == passwd.AUTH_NOK {
+	if ok.Result == controlers.AUTH_NOK {
 		api.ResponseErrorUnauthorized(w, fmt.Errorf("wrong email/pass"))
 		return
 	}
-	if ok == passwd.AUTH_OK {
-
+	if ok.Result == controlers.AUTH_OK {
 		sendNewToken(w, ctx, userPasswd)
 		return
 	}
 	api.ResponseError(w, 500, "unable to login", fmt.Errorf("unkown error"))
-
-	// asd := jwt.Aasd(login.Email)
-
 }
 
 func sendNewToken(w http.ResponseWriter, ctx context.Context, userPasswd *models.UserPasswd) {
 
 	tokenClaims := token.ApiClaims{
-		Groups: "asdasdasd",
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: 15000,
-			Subject:   fmt.Sprintf("email:%s", userPasswd.Email),
-			Issuer:    api.Name(),
+		Roles: "system",
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject: userPasswd.Email,
 		},
 	}
 	t, err := sign.SignKey(tokenClaims, ctx)

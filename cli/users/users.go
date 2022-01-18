@@ -6,7 +6,7 @@ import (
 
 	"github.com/ggrrrr/bui_api_login/cli"
 	"github.com/ggrrrr/bui_api_login/models"
-	"github.com/ggrrrr/bui_lib/db"
+	db "github.com/ggrrrr/bui_lib/db/cassandra"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -39,7 +39,8 @@ func updatePasswd(email string, newPass string) {
 		return
 	}
 	passwd.Passwd = hashPass
-	err = passwd.UpdatePasswrd(db.Session)
+	passwd.Enabled = true
+	err = passwd.Insert(db.Session)
 	fmt.Printf("err: %+v", err)
 }
 

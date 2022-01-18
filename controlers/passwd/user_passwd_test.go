@@ -4,15 +4,31 @@ import (
 	"context"
 	"testing"
 
-	controlers "github.com/ggrrrr/bui_api_login/controlers/passwd"
+	"github.com/ggrrrr/bui_api_login/controlers"
+	"github.com/ggrrrr/bui_api_login/controlers/passwd"
 	"github.com/ggrrrr/bui_api_login/models"
-	"github.com/ggrrrr/bui_lib/db"
+	db "github.com/ggrrrr/bui_lib/db/cassandra"
 )
 
+func createUserPass(t *testing.T, ctx context.Context, pass *models.UserPasswd) {
+	ok := passwd.CreateUserPasswd(ctx, pass)
+	if ok.Err != nil {
+		t.Error(ok.Err)
+	}
+
+}
+
+func clean(t *testing.T) {
+	err := db.Session.ExecStmt("DELETE from test.user_passwd where email='asd@asd.com'")
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 func TestPasswd1(t *testing.T) {
-	var err error
 	email := "asd@asd.com"
 	plainPass := "asd"
+	newPlainPass := "123123"
 	namespaces := []string{"bui", "localhost"}
 
 	ctx := context.Background()
@@ -22,24 +38,39 @@ func TestPasswd1(t *testing.T) {
 	db.Connect()
 	db.CreateSchema("passwd")
 	defer db.Shutdown()
-	pass := models.UserPasswd{Email: email, Passwd: plainPass, Enabled: true, Namespaces: namespaces}
-	err = controlers.CreateUserPasswd(ctx, &pass)
-	if err != nil {
-		t.Error(err)
-	}
+	clean(t)
+	pass := models.UserPasswd{Email: email, Passwd: plainPass, Enabled: false, Namespaces: namespaces}
+	createUserPass(t, ctx, &pass)
 
-	ok, _, err := controlers.VerifyUserPasswd(ctx, email, "plainPass")
-	if ok != controlers.AUTH_NOK {
+	_, ok := passwd.VerifyUserPasswd(ctx, email, "plainPass")
+	if ok.Result != controlers.AUTH_LOCKED {
+		t.Errorf("pass must locked")
+	}
+	clean(t)
+	pass = models.UserPasswd{Email: email, Passwd: plainPass, Enabled: true, Namespaces: namespaces}
+	createUserPass(t, ctx, &pass)
+
+	_, ok = passwd.VerifyUserPasswd(ctx, "email", plainPass)
+	if ok.Result != controlers.AUTH_NOT_FOUND {
 		t.Errorf("pass dont match")
 	}
 
-	ok, _, err = controlers.VerifyUserPasswd(ctx, "email", plainPass)
-	if ok != controlers.AUTH_NOT_FOUND {
+	_, ok = passwd.VerifyUserPasswd(ctx, email, plainPass)
+	if ok.Result != controlers.AUTH_OK {
 		t.Errorf("pass dont match")
 	}
+	ok = passwd.ChangeUserPasswd(ctx, email, plainPass, newPlainPass)
+	if ok.Result != controlers.AUTH_OK {
+		t.Errorf("change pass did not worked")
+	}
+	_, ok = passwd.VerifyUserPasswd(ctx, email, newPlainPass)
+	if ok.Result != controlers.AUTH_OK {
+		t.Errorf("pass dont match")
+	}
+	_, ok = passwd.VerifyUserPasswd(ctx, email, plainPass)
+	if ok.Result != controlers.AUTH_NOK {
+		t.Errorf("pass dont match %v", ok)
+	}
+	clean(t)
 
-	ok, _, err = controlers.VerifyUserPasswd(ctx, email, plainPass)
-	if ok != controlers.AUTH_OK {
-		t.Errorf("pass dont match")
-	}
 }
