@@ -1,11 +1,11 @@
 FROM golang:1.17-alpine as stage
 WORKDIR /build
-COPY go.* /build
+COPY go.* /build/
 RUN go mod download
 #  go mod tidy -compat=1.17
 
 RUN go mod tidy 
-COPY . /build
+COPY . /build/
 
 # RUN make
 RUN go build -mod=readonly -v -o /build/app main.go
