@@ -76,6 +76,13 @@ func fetchEmailGmail(client *http.Client, url string) (*AuthProfile, error) {
 	return &AuthProfile{Email: pp.Email, ID: pp.Id, Picture: pp.Picture, Attr: attr}, nil
 }
 
+//{"id":"10227492569961597",
+// "name":"Varban Topolev Krushev",
+// "email":"mandajiev\u0040yahoo.com",
+// "picture":{"data":{"height":50,"is_silhouette":false,
+// "url":"https:\/\/platform-lookaside.fbsbx.com\/platform\/profilepic\/?asid=10227492569961597&height=50&width=50&ext=1645310692&hash=AeS1y5ddyQFVM4vfYyI",
+// "width":50}}}
+
 func fetchEmailFacebook(client *http.Client, url string) (*AuthProfile, error) {
 	resProfile, _ := client.Get(url)
 	body, _ := ioutil.ReadAll(resProfile.Body)
@@ -83,6 +90,7 @@ func fetchEmailFacebook(client *http.Client, url string) (*AuthProfile, error) {
 	type profileT struct {
 		Id      string `json:"id"`
 		Email   string `json:"email"`
+		Name    string `json:"name"`
 		Picture struct {
 			Data struct {
 				Url string `json:"url"`
@@ -102,7 +110,7 @@ func fetchEmailFacebook(client *http.Client, url string) (*AuthProfile, error) {
 		"picture":  pp.Picture.Data.Url,
 		// "first_name": pp.FirstName,
 		// "last_name":  pp.LastName,
-		// "name":       pp.Name,
+		"name": pp.Name,
 		// "verified_email"
 
 	}
