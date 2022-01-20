@@ -94,6 +94,9 @@ func server() {
 	api.HandleFunc("/auth/token", res.TokenVerifyRequest)
 	api.HandleFunc("/auth/me/password", res.ChangePasswordRequest)
 
+	api.HandleFunc("/auth/request/list", res.ListRequest)
+	api.HandleFunc("/auth/request/activate", res.ActivateRequest)
+
 	osSignals := make(chan os.Signal, 1)
 	go func() {
 		err := api.Start()

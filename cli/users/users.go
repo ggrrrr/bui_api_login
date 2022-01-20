@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ggrrrr/bui_api_login/cli"
-	"github.com/ggrrrr/bui_api_login/models"
+	models "github.com/ggrrrr/bui_api_login/models/passwd"
 	db "github.com/ggrrrr/bui_lib/db/cassandra"
 	"golang.org/x/crypto/bcrypt"
 )

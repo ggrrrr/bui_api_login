@@ -1,6 +1,8 @@
 package auth_test
 
 import (
+	"context"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -10,8 +12,13 @@ import (
 
 	// c "github.com/ggrrrr/bui_api_login/contolers/auth"
 	c "github.com/ggrrrr/bui_api_login/controlers/auth"
+	passwdC "github.com/ggrrrr/bui_api_login/controlers/passwd"
+	"github.com/ggrrrr/bui_api_login/models/passwd"
 	"github.com/ggrrrr/bui_api_login/resources/auth"
+	"github.com/ggrrrr/bui_lib/api"
 	"github.com/ggrrrr/bui_lib/db/cassandra"
+	"github.com/ggrrrr/bui_lib/token"
+	"github.com/ggrrrr/bui_lib/token/sign"
 )
 
 func runCall(body string) (*http.Response, string, error) {
@@ -26,6 +33,8 @@ func runCall(body string) (*http.Response, string, error) {
 }
 
 func TestLogin(t *testing.T) {
+	root1 := context.Background()
+	root := api.SetUserAgent(root1, api.UserAgent{})
 	var err error
 	err = cassandra.Configure()
 	if err != nil {
@@ -36,17 +45,38 @@ func TestLogin(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 	defer session.Close()
+	if token.Configure() != nil {
+		t.Fatal("token config")
+	}
+
+	if sign.Configure() != nil {
+		t.Fatalf(err.Error())
+	}
 
 	c.Configure()
 
-	loginTest := `{"email":"ggrrrr@gmail.com"}`
-	res, data, err := runCall(loginTest)
+	newEmail1 := "asd@asd.com"
+	newPass := "asdasd"
+	passwdC.CreateUserPasswd(root, &passwd.UserPasswd{Email: newEmail1, Passwd: newPass, Enabled: true})
+
+	loginTest1 := `{"email":"ggrrrr@gmail.com"}`
+	res1, data1, err := runCall(loginTest1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if res.StatusCode != 400 {
+	if res1.StatusCode != 400 {
 		t.Fatalf("must be error")
 	}
-	t.Logf("body:%s: err: %v", data, err)
+	t.Logf("body:%s: err: %v", data1, err)
+
+	loginTest2 := fmt.Sprintf(`{"email":"%v","password":"%v"}`, newEmail1, newPass)
+	res2, data2, err := runCall(loginTest2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res2.StatusCode != 200 {
+		t.Fatalf("must be error")
+	}
+	t.Logf("body:%s: err: %v", data2, err)
 
 }

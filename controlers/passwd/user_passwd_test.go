@@ -6,7 +6,7 @@ import (
 
 	"github.com/ggrrrr/bui_api_login/controlers"
 	"github.com/ggrrrr/bui_api_login/controlers/passwd"
-	"github.com/ggrrrr/bui_api_login/models"
+	models "github.com/ggrrrr/bui_api_login/models/passwd"
 	db "github.com/ggrrrr/bui_lib/db/cassandra"
 )
 

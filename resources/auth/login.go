@@ -10,7 +10,7 @@ import (
 
 	"github.com/ggrrrr/bui_api_login/controlers"
 	"github.com/ggrrrr/bui_api_login/controlers/passwd"
-	"github.com/ggrrrr/bui_api_login/models"
+	models "github.com/ggrrrr/bui_api_login/models/passwd"
 	"github.com/ggrrrr/bui_lib/api"
 	"github.com/ggrrrr/bui_lib/token"
 	"github.com/ggrrrr/bui_lib/token/sign"
