@@ -3,7 +3,7 @@ module github.com/ggrrrr/bui_api_login
 go 1.17
 
 require (
-	github.com/ggrrrr/bui_lib v0.0.2
+	github.com/ggrrrr/bui_lib v0.0.3
 	github.com/golang-jwt/jwt/v4 v4.2.0
 	github.com/spf13/viper v1.10.1
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8

@@ -55,7 +55,7 @@ func ActivateRequest(w http.ResponseWriter, r *http.Request) {
 	c.CreateUserPasswd(r.Context(), &newPasswd)
 
 	log.Printf("asdActivateRequest(%v): token: %v", api.GetUserAgent(r.Context()), apiClaims)
-	api.ResponseOk(w)
+	api.ResponseOk(w, "ok", nil)
 }
 
 func ListRequest(w http.ResponseWriter, r *http.Request) {
@@ -72,13 +72,12 @@ func ListRequest(w http.ResponseWriter, r *http.Request) {
 		api.ResponseErrorUnauthorized(w, err)
 		return
 	}
-	asd, err := requests.List(cassandra.Session)
+	out, err := requests.List(cassandra.Session)
 	if err != nil {
 		api.ResponseErrorUnauthorized(w, err)
 		return
 	}
-	_ = json.NewEncoder(w).Encode(asd)
 
 	log.Printf("asdActivateRequest(%v): token: %v", api.GetUserAgent(r.Context()), apiClaims)
-	api.ResponseOk(w)
+	api.ResponseOk(w, "ok", out)
 }

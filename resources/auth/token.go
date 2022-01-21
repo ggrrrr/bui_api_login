@@ -22,5 +22,5 @@ func TokenVerifyRequest(w http.ResponseWriter, r *http.Request) {
 		api.ResponseErrorUnauthorized(w, err)
 		return
 	}
-	api.ResponseOk(w)
+	api.ResponseOk(w, "ok", nil)
 }

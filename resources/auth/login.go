@@ -96,8 +96,9 @@ func sendNewToken(w http.ResponseWriter, ctx context.Context, userPasswd *models
 		Attr:  userPasswd.Attr,
 	}
 
-	err = json.NewEncoder(w).Encode(out)
-	if err != nil {
-		log.Printf("errer %v\n", err)
-	}
+	api.ResponseOk(w, "ok", out)
+	// err = json.NewEncoder(w).Encode(out)
+	// if err != nil {
+	// 	log.Printf("errer %v\n", err)
+	// }
 }

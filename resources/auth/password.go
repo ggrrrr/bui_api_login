@@ -72,7 +72,7 @@ func parsePasswordReulst(w http.ResponseWriter, ctx context.Context, ok *control
 		return
 	}
 	if ok.Result == controlers.AUTH_OK {
-		api.ResponseOk(w)
+		api.ResponseOk(w, "ok", nil)
 		return
 	}
 	api.ResponseError(w, 500, "unable to login", fmt.Errorf("unkown error"))
