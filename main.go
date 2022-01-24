@@ -96,6 +96,8 @@ func server() {
 
 	api.HandleFunc("/auth/request/list", res.ListRequest)
 	api.HandleFunc("/auth/request/activate", res.ActivateRequest)
+	// api.HandleFunc("/auth/request/list", res.ListRequest)
+	api.HandleFunc("/auth/users/list", res.ListUsers)
 
 	osSignals := make(chan os.Signal, 1)
 	go func() {

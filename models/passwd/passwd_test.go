@@ -27,4 +27,13 @@ func TestPasswd1(t *testing.T) {
 	if err != nil {
 		t.Errorf("cant insert : %+v", err)
 	}
+
+	list, err := passwd.List(session)
+	if err != nil {
+		t.Errorf("cant get : %+v", err)
+	}
+	if len(list) < 1 {
+		t.Errorf("cant get : %+v", err)
+	}
+	t.Logf("list: %v", list)
 }
